@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  prebuild:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -75,7 +75,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: prebuild
+    needs: build
     if: github.ref == 'refs/heads/main'
 
     steps:
