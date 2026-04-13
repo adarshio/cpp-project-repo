@@ -1,0 +1,155 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - PropRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        .signup-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.98);
+        }
+        .type-card {
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .type-card.selected {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center relative py-12">
+    <!-- Background Image -->
+    <div class="fixed inset-0 z-0">
+        <img src="{% static 'images/house2.jpg' %}" alt="Background" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-blue-600/80"></div>
+    </div>
+
+    <!-- Signup Container -->
+    <div class="relative z-10 w-full max-w-2xl px-4">
+        <div class="signup-card rounded-2xl shadow-2xl p-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl mb-4">
+                    <i class="fas fa-building text-white text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Create Your Account</h2>
+                <p class="text-gray-500 mt-1">Join PropRent to find or list properties</p>
+            </div>
+
+            <form method="post" action="{% url 'signup' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Account Type Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">I want to</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="type-card cursor-pointer" id="tenant-card">
+                            <input type="radio" name="type" value="False" class="hidden" required>
+                            <div class="p-6 border border-gray-200 rounded-xl text-center hover:border-blue-600 transition">
+                                <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-user text-blue-600 text-xl"></i>
+                                </div>
+                                <div class="font-medium text-gray-800">Rent a Home</div>
+                                <p class="text-xs text-gray-500 mt-1">Find your perfect property</p>
+                            </div>
+                        </label>
+                        
+                        <label class="type-card cursor-pointer" id="owner-card">
+                            <input type="radio" name="type" value="True" class="hidden">
+                            <div class="p-6 border border-gray-200 rounded-xl text-center hover:border-blue-600 transition">
+                                <div class="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-user-tie text-amber-600 text-xl"></i>
+                                </div>
+                                <div class="font-medium text-gray-800">List Property</div>
+                                <p class="text-xs text-gray-500 mt-1">Become a property owner</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Form Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                        <input type="text" name="username" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Choose a username">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input type="email" name="email" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="you@example.com">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" name="password" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Create a password">
+                        <p class="mt-1 text-xs text-gray-500">Minimum 8 characters with letters and numbers</p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" name="phone_number" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="+1 (555) 000-0000">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <input type="text" name="address" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Street address">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                        <input type="text" name="city" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Your city">
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-200 font-medium">
+                    Create Account
+                </button>
+
+                <div class="text-center text-sm text-gray-600">
+                    Already have an account? 
+                    <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-700 font-medium">Sign in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Account type selection styling
+        document.querySelectorAll('input[name="type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.type-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                if (this.value === 'False') {
+                    document.getElementById('tenant-card').classList.add('selected');
+                } else {
+                    document.getElementById('owner-card').classList.add('selected');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

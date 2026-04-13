@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.3/cdn.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    {%include 'tenant_navbar.html'%}
+
+    <div class="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <!-- Alerts -->
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="p-4 mb-3 flex items-center text-white rounded-lg shadow-md
+                    {% if message.tags == 'success' %}bg-green-500
+                    {% elif message.tags == 'error' %}bg-red-500
+                    {% else %}bg-blue-500{% endif %}">
+                    <div class="mr-3">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle"></i>
+                        {% endif %}
+                    </div>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <!-- Page Header -->
+            <div class="px-6 py-5 border-b border-gray-200 flex items-center">
+                <div class="flex-shrink-0 bg-indigo-100 rounded-full p-3 mr-4">
+                    <i class="fas fa-user-edit text-indigo-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl leading-6 font-bold text-gray-900">My Profile</h3>
+                    <p class="mt-1 text-sm text-gray-500">Update your personal information and account settings</p>
+                </div>
+            </div>
+
+            {%if tenant%}
+            <!-- Tabs -->
+            <div x-data="{tab: 'personal'}" class="border-b border-gray-200">
+                <nav class="flex -mb-px">
+                    <button @click="tab = 'personal'" :class="{'border-indigo-500 text-indigo-600': tab === 'personal', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'personal'}" class="py-4 px-6 border-b-2 font-medium text-sm">
+                        <i class="fas fa-user mr-2"></i>
+                        Personal Details
+                    </button>
+                    <button @click="tab = 'security'" :class="{'border-indigo-500 text-indigo-600': tab === 'security', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'security'}" class="py-4 px-6 border-b-2 font-medium text-sm">
+                        <i class="fas fa-lock mr-2"></i>
+                        Security
+                    </button>
+                </nav>
+            
+                <!-- Personal Details Form -->
+                <div x-show="tab === 'personal'" class="px-6 py-6 space-y-6">
+                    <form method="post" action="{% url 'tenant_info' %}" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                            <!-- Username -->
+                            <div class="sm:col-span-2">
+                                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-at text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="username" value="{{tenant.user.username}}" name="username" 
+                                        class="pl-10 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                        required placeholder="Choose a username">
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="sm:col-span-2">
+                                <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-envelope text-gray-400"></i>
+                                    </div>
+                                    <input type="email" id="email" value="{{tenant.user.email}}" name="email" 
+                                        class="pl-10 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                        required placeholder="Your email address">
+                                </div>
+                            </div>
+                            
+                            <!-- Phone -->
+                            <div class="sm:col-span-2">
+                                <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-phone text-gray-400"></i>
+                                    </div>
+                                    <input type="tel" id="phone" value="{{tenant.phone_number}}" name="phone_number" 
+                                        class="pl-10 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                        required placeholder="Your contact number">
+                                </div>
+                            </div>
+                            
+                            <!-- Address -->
+                            <div class="sm:col-span-1">
+                                <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-home text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="address" value="{{tenant.address}}" name="address" 
+                                        class="pl-10 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                        required placeholder="Street address">
+                                </div>
+                            </div>
+                            
+                            <!-- City -->
+                            <div class="sm:col-span-1">
+                                <label for="city" class="block text-sm font-medium text-gray-700">City</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-city text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="city" value="{{tenant.city}}" name="city" 
+                                        class="pl-10 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                        required placeholder="Your city">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-5">
+                            <div class="flex justify-end">
+                                <input type="hidden" name="tenant_id" value="{{ tenant.id }}">
+                                <button type="submit" 
+                                    class="inline-flex justify-center items-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                                    <i class="fas fa-save mr-2"></i>
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Security Form -->
+                <div x-show="tab === 'security'" class="px-6 py-6 space-y-6">
+                    <form method="post" action="{% url 'tenant_change_password' %}" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <div class="space-y-4">
+                            <!-- Current Password -->
+                            <div>
+                                <label for="current_password" class="block text-sm font-medium text-gray-700">Current Password</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-key text-gray-400"></i>
+                                    </div>
+                                    <input type="password" id="current_password" name="current_password" 
+                                        class="pl-10 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                        required placeholder="Your current password">
+                                </div>
+                            </div>
+
+                            <!-- New Password -->
+                            <div>
+                                <label for="new_password" class="block text-sm font-medium text-gray-700">New Password</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-lock text-gray-400"></i>
+                                    </div>
+                                    <input type="password" id="new_password" name="new_password" 
+                                        class="pl-10 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border"
+                                        required placeholder="Your new password">
+                                </div>
+                                <p class="mt-2 text-xs text-gray-500">Password should be at least 8 characters and include uppercase, lowercase, numbers and special characters.</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-5">
+                            <div class="flex justify-end">
+                                <button type="submit"
+                                    class="inline-flex justify-center items-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150">
+                                    <i class="fas fa-lock mr-2"></i>
+                                    Update Password
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {%endif%}
+        </div>
+        
+        
+    </div>
+
+</body>
+</html>

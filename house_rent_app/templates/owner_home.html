@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Properties - PropRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    {% include 'owner_navbar.html' %}
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-light text-gray-800">My <span class="font-semibold">Properties</span></h1>
+                <p class="text-gray-500 mt-1">Manage your property listings</p>
+            </div>
+            <a href="{% url 'owner_add_property' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center">
+                <i class="fas fa-plus mr-2"></i>Add Property
+            </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Properties</p>
+                        <p class="text-2xl font-semibold text-gray-800">{{ houses|length }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-home text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Available</p>
+                        <p class="text-2xl font-semibold text-gray-800">
+                            {{ houses|length }} <!-- Calculate available count -->
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-emerald-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Monthly Revenue</p>
+                        <p class="text-2xl font-semibold text-gray-800">€{{ total_rent }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-euro-sign text-amber-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Search properties..." 
+                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <!-- Properties Grid -->
+        {% if houses %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="propertiesGrid">
+            {% for house in houses %}
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition property-card">
+                <div class="relative h-48">
+                    <img src="media/{{ house.image }}" alt="Property" class="w-full h-full object-cover">
+                    <span class="absolute top-4 right-4 px-3 py-1 text-sm rounded-lg 
+                        {% if house.is_available %}bg-emerald-500 text-white{% else %}bg-gray-500 text-white{% endif %}">
+                        {{ house.is_available|yesno:"Available,Rented" }}
+                    </span>
+                </div>
+                
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ house.title|default:house.address }}</h3>
+                    <p class="text-gray-500 flex items-center mb-4">
+                        <i class="fas fa-map-marker-alt text-blue-600 mr-2"></i>
+                        {{ house.city }}
+                    </p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center text-gray-600">
+                            <i class="fas fa-bed mr-2"></i>
+                            <span class="text-sm">{{ house.no_of_rooms }} rooms</span>
+                        </div>
+                        <div class="flex items-center text-gray-600">
+                            <i class="fas fa-ruler-combined mr-2"></i>
+                            <span class="text-sm">{{ house.area }} sq ft</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div>
+                            <span class="text-2xl font-bold text-gray-800">€{{ house.rent }}</span>
+                            <span class="text-gray-500 text-sm">/month</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <form method="post" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="edit" value="{{ house.id }}">
+                                <button type="submit" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </form>
+                            <form method="post" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="delete" value="{{ house.id }}">
+                                <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                        onclick="return confirm('Delete this property?')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
+            <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-home text-gray-400 text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">No properties yet</h3>
+            <p class="text-gray-500 mb-6">Start by adding your first property listing</p>
+            <a href="{% url 'owner_add_property' %}" class="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-plus mr-2"></i>Add Property
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('searchInput')?.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.property-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PropRent Admin{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background-color: #f8fafc;
+        }
+        .sidebar-gradient {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+        .menu-item {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        .menu-item:hover {
+            background-color: #f1f5f9;
+            border-left-color: #2563eb;
+        }
+        .menu-item.active {
+            background-color: #eff6ff;
+            border-left-color: #2563eb;
+            color: #2563eb;
+        }
+        .menu-item.active i {
+            color: #2563eb;
+        }
+        .card-shadow {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <div class="w-72 bg-white shadow-lg flex flex-col border-r border-gray-200">
+        <!-- Logo Area -->
+        <div class="h-20 flex items-center px-6 border-b border-gray-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-building text-white text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-semibold text-gray-800">PropRent</span>
+                    <span class="block text-xs text-gray-500">Admin Console</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto py-6 px-4">
+            <div class="space-y-1">
+                <a href="{% url 'admin_home' %}" 
+                   class="menu-item flex items-center px-4 py-3 text-gray-700 rounded-lg {% if request.resolver_match.url_name == 'admin_home' %}active{% endif %}">
+                    <i class="fas fa-home w-6 text-gray-500"></i>
+                    <span class="ml-3 text-sm font-medium">Dashboard</span>
+                </a>
+                
+                <a href="{% url 'admin_houses' %}" 
+                   class="menu-item flex items-center px-4 py-3 text-gray-700 rounded-lg {% if request.resolver_match.url_name == 'admin_houses' %}active{% endif %}">
+                    <i class="fas fa-building w-6 text-gray-500"></i>
+                    <span class="ml-3 text-sm font-medium">Properties</span>
+                </a>
+                
+                <a href="{% url 'admin_owners' %}" 
+                   class="menu-item flex items-center px-4 py-3 text-gray-700 rounded-lg {% if request.resolver_match.url_name == 'admin_owners' %}active{% endif %}">
+                    <i class="fas fa-user-tie w-6 text-gray-500"></i>
+                    <span class="ml-3 text-sm font-medium">Property Owners</span>
+                </a>
+                
+                <a href="{% url 'admin_tenants' %}" 
+                   class="menu-item flex items-center px-4 py-3 text-gray-700 rounded-lg {% if request.resolver_match.url_name == 'admin_tenants' %}active{% endif %}">
+                    <i class="fas fa-users w-6 text-gray-500"></i>
+                    <span class="ml-3 text-sm font-medium">Tenants</span>
+                </a>
+            </div>
+
+            <div class="border-t border-gray-200 my-6"></div>
+
+            <!-- Quick Stats -->
+            
+        </nav>
+
+        <!-- User Menu -->
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-gray-600"></i>
+                </div>
+                <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium text-gray-700">Admin User</p>
+                    <p class="text-xs text-gray-500">admin@PropRent.com</p>
+                </div>
+                <a href="{% url 'logout' %}" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto bg-gray-50">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

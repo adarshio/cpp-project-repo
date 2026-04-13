@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Requests | Owner Dashboard</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --light-bg: #f9fafb;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .request-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .request-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .property-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .tenant-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        .badge-pending {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        .badge-accepted {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .badge-rejected {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .action-btn {
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .message-alert {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .message-alert i {
+            margin-right: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    {% include 'owner_navbar.html' %}
+
+    <div class="container py-5">
+
+        <!-- Page Header -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1 class="h3 font-weight-bold">
+                <i class="fas fa-clipboard-list text-dark mr-2"></i> Rental Requests
+            </h1>
+            <span class="badge badge-primary p-2">Total Requests: {{ requests|length }}</span>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                {% for message in messages %}
+                <div class="alert message-alert fade show 
+                    {% if message.tags == 'success' %}bg-success text-white
+                    {% elif message.tags == 'error' %}bg-danger text-white
+                    {% else %}bg-info text-white{% endif %}">
+                    <i class="fas 
+                        {% if message.tags == 'success' %}fa-check-circle
+                        {% elif message.tags == 'error' %}fa-exclamation-circle
+                        {% else %}fa-info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Request Cards -->
+        {% if requests %}
+        <div class="row">
+            {% for request in requests %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="request-card h-100">
+                    <img src="media/{{ request.house.image }}" alt="Property Image" class="property-img">
+                    <div class="p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div>
+                                <h5 class="font-weight-bold mb-0">{{ request.tenant.userprofile.user.get_full_name }}</h5>
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt mr-1"></i> {{ request.tenant.userprofile.address }}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <p class="text-muted small mb-2" style="font-weight: 700; font-size: 15px;">
+                                <i class="fas fa-home mr-1"></i> {{ request.house.title }}
+                            </p>
+                            <div class="d-flex justify-content-between">
+                                <span class="font-weight-bold text-primary">
+                                    <i class="fas fa-rupee-sign mr-1"></i> {{ request.house.rent }}/mo
+                                </span>
+                                <span class="text-muted">
+                                    <i class="far fa-calendar-alt mr-1"></i> {{ request.request_date|date:"M d, Y" }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if request.status %}
+                            <span class="badge badge-accepted py-2 px-3">
+                                <i class="fas fa-check-circle mr-1"></i> Accepted
+                            </span>
+                            {% else %}
+                
+                            <form method="post" action="{% url 'owner_requests' %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="reject" value="{{ request.id }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm action-btn">
+                                    <i class="fas fa-times mr-1"></i> Reject
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            <button class="btn btn-outline-primary btn-sm action-btn" data-toggle="modal" data-target="#requestDetails{{ request.id }}">
+                                <i class="fas fa-eye mr-1"></i> Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Request Modal -->
+            <div class="modal fade" id="requestDetails{{ request.id }}" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <form method="post" action="{% url 'owner_requests' %}">
+                            {% csrf_token %}
+                            <div class="modal-header">
+                                <h5 class="modal-title">Request Details - {{ request.house.title }}</h5>
+                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Tenant</h6>
+                                        <img src="https://imgs.search.brave.com/hxnhTNNTA6uQm6AhPveXCKGT8hNr5XBjuE-1jqoc7R4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA1LzYwLzUwLzI5/LzM2MF9GXzU2MDUw/Mjk1NV9CclJhVUJY/SU9abHplVTV1MlhX/b0d1dnVwRG1CMmF5/Ti5qcGc" 
+                                        class="tenant-avatar mb-2" alt="Tenant Avatar">
+                                        <p><strong>Name:</strong> {{ request.tenant.userprofile.user.get_full_name }}</p>
+                                        <p><strong>Email:</strong> {{ request.tenant.userprofile.user.email }}</p>
+                                        <p><strong>Phone:</strong> {{ request.tenant.userprofile.phone_number }}</p>
+                                        <p><strong>Address:</strong> {{ request.tenant.userprofile.address }}</p>
+                                        
+
+                                        {% comment %} First, check if a booking already exists {% endcomment %}
+                                        {% with has_booking=False %}
+                                            {% for bd in booking_dates %}
+                                                {% if bd.house.id == request.house.id and bd.tenant.id == request.tenant.id %}
+                                                    {% with has_booking=True %}
+                                                        <div class="form-group">
+                                                            <label>Start Date</label>
+                                                            <input type="date" class="form-control"
+                                                                name="start_date"
+                                                                value="{{ bd.start_date|date:'Y-m-d' }}"
+                                                                required>
+                                                            
+                                                            <label class="mt-2">End Date</label>
+                                                            <input type="date" class="form-control"
+                                                                name="end_date"
+                                                                value="{{ bd.end_date|date:'Y-m-d' }}"
+                                                                required>
+                                                        </div>
+                                                    {% endwith %}
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            {% if not has_booking and not request.status %}
+                                                <div class="form-group">
+                                                    <label>Start Date</label>
+                                                    <input type="date" class="form-control" name="start_date" required>
+                                                    <label class="mt-2">End Date</label>
+                                                    <input type="date" class="form-control" name="end_date" required>
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Property</h6>
+                                        <img src="/media/{{ request.house.image }}" class="img-fluid rounded mb-2" alt="House">
+                                        <p><strong>Type:</strong> {{ request.house.description }}</p>
+                                        <p><strong>Rent:</strong> €{{ request.house.rent }}</p>
+                                        <p><strong>Location:</strong> {{ request.house.address }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <input type="hidden" name="accept" value="{{ request.id }}">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                {% if not request.status %}
+                                <button type="submit" class="btn btn-success">
+                                    <input type="hidden" name="accept" value="{{ request.id }}">
+                                    <i class="fas fa-check mr-1"></i> Accept
+                                </button>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+            <h4>No Rental Requests Yet</h4>
+            <p class="text-muted">Tenants' requests will appear here when submitted.</p>
+            <a href="{% url 'owner_home' %}" class="btn btn-primary">View Properties</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Accept request via AJAX
+        $('.accept-request-form').on('submit', function (e) {
+            e.preventDefault();
+            const $form = $(this);
+            const requestId = $form.find('input[name="accept"]').val();
+            const startDate = $form.find('input[name="start_date"]').val();
+            const endDate = $form.find('input[name="end_date"]').val();
+
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'POST',
+                data: {
+                    'accept': requestId,
+                    'start_date': startDate,
+                    'end_date': endDate,
+                    'csrfmiddlewaretoken': $form.find('input[name="csrfmiddlewaretoken"]').val()
+                },
+                success: function (response) {
+                    location.reload();  // Reload to update status
+                },
+                error: function (xhr) {
+                    alert('Failed to accept the request.');
+                }
+            });
+        });
+
+        // Reject request via AJAX
+        $('.reject-request-form').on('submit', function (e) {
+            e.preventDefault();
+            const $form = $(this);
+            const requestId = $form.find('input[name="reject"]').val();
+
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'POST',
+                data: {
+                    'reject': requestId,
+                    'csrfmiddlewaretoken': $form.find('input[name="csrfmiddlewaretoken"]').val()
+                },
+                success: function (response) {
+                    location.reload();  // Reload to update status
+                },
+                error: function (xhr) {
+                    alert('Failed to reject the request.');
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

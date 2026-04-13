@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ house.title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    {% include 'tenant_navbar.html' %}
+
+    <div class="max-w-5xl mx-auto px-4 py-12">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="p-4 mb-6 text-sm rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Property Images -->
+            <div class="relative h-80">
+                <img src="{{ house.image.url }}" alt="{{ house.title }}" class="w-full h-80 object-cover">
+                <div class="absolute top-4 right-4 bg-indigo-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow">
+                    €{{ house.rent }}/month
+                </div>
+            </div>
+            
+            <!-- Property Content -->
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">{{ house.title }}</h1>
+                        <p class="text-gray-500 mt-1 flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2 text-indigo-600"></i>
+                            {{ house.address }}, {{ house.city }}
+                        </p>
+                    </div>
+                    <div class="bg-indigo-50 px-4 py-2 rounded-lg">
+                        <p class="text-indigo-700 font-medium">Available Now</p>
+                    </div>
+                </div>
+                
+                <!-- Property Description -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-3">About This Property</h2>
+                    <p class="text-gray-600 leading-relaxed">{{ house.description }}</p>
+                </div>
+                
+                <!-- Property Features -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Property Details</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-y-4">
+                        <div class="flex items-center">
+                            <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                                <i class="fas fa-ruler-combined text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Area</p>
+                                <p class="font-medium">{{ house.area }} sq ft</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                                <i class="fas fa-door-open text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Rooms</p>
+                                <p class="font-medium">{{ house.no_of_rooms }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                                <i class="fas fa-couch text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Furnished</p>
+                                <p class="font-medium">{{ house.furnished|yesno:"Yes,No" }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                                <i class="far fa-calendar-alt text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Posted On</p>
+                                <p class="font-medium">{{ house.created_at|date:"F j, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Landlord Form -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Interested in this property?</h2>
+                    <form method="post" action="{% url 'tenant_property_details' house.id %}">
+                        {% csrf_token %}
+                        {% if request_obj %}
+                        <button type="button" class="w-full md:w-auto px-8 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition duration-300 flex items-center justify-center font-medium shadow-md">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Send Already Sent
+                        </button>
+                        {% else %}
+                        <input type="hidden" name="house_id" value="{{ house.id }}">
+                        <button type="submit" class="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center justify-center font-medium shadow-md">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Send Rental Request
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Similar Properties Section -->
+        {% if similar_properties %}
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Similar Properties</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- This section would require you to pass similar_properties in your view -->
+                <!-- This is just a placeholder -->
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <footer class="bg-gray-800 text-white mt-16 py-8">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="text-center">
+                <p>© {% now "Y" %} Property Rental. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

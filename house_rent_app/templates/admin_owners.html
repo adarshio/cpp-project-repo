@@ -1,0 +1,150 @@
+{% extends "admin_sidebar.html" %}
+
+{% block title %}Property Owners - PropRent Admin{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-light text-gray-800">Property <span class="font-semibold">Owners</span></h1>
+        <p class="text-gray-500 mt-1">Manage property owners and their listings</p>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+        <div class="flex flex-wrap gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search owners..." 
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            
+            <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+            
+            <select id="cityFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="all">All Cities</option>
+                {% for city in cities %}
+                <option value="{{ city }}">{{ city }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Owners Grid -->
+    {% if owners %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="ownersGrid">
+        {% for owner in owners %}
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition owner-item"
+             data-status="{% if owner.user.is_active %}active{% else %}inactive{% endif %}"
+             data-city="{{ owner.city }}">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                        <span class="text-white text-xl font-semibold">{{ owner.user.username|slice:":1"|upper }}</span>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-800 owner-name">{{ owner.user.username }}</h3>
+                        <p class="text-sm text-gray-500">ID: #{{ owner.user.id }}</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-4">
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-envelope w-5 text-gray-400"></i>
+                        <span class="ml-2 text-gray-600 owner-email">{{ owner.user.email }}</span>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-phone w-5 text-gray-400"></i>
+                        <span class="ml-2 text-gray-600">{{ owner.phone_number }}</span>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-map-marker-alt w-5 text-gray-400"></i>
+                        <span class="ml-2 text-gray-600 owner-city">{{ owner.city }}</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div>
+                        <span class="text-sm text-gray-500">Properties</span>
+                        <p class="text-xl font-semibold text-gray-800">{{ owner.house_count }}</p>
+                    </div>
+                    <span class="px-3 py-1 text-xs font-medium rounded-full 
+                        {% if owner.user.is_active %}bg-emerald-50 text-emerald-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                        {{ owner.user.is_active|yesno:"Active,Inactive" }}
+                    </span>
+                </div>
+                
+                <div class="mt-4 flex justify-end space-x-2">
+                    <form method="post" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="edit" value="{{ owner.user.id }}">
+                        <button type="submit" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </form>
+                    <form method="post" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete" value="{{ owner.user.id }}">
+                        <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                onclick="return confirm('Delete this owner? This will also remove all their properties.')">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-user-tie text-gray-400 text-3xl"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No owners found</h3>
+        <p class="text-gray-500">Property owners will appear here once they register</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const cityFilter = document.getElementById('cityFilter');
+    const ownersGrid = document.getElementById('ownersGrid');
+    const allOwners = Array.from(document.querySelectorAll('.owner-item'));
+    
+    function filterOwners() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const statusValue = statusFilter.value;
+        const cityValue = cityFilter.value;
+        
+        const filtered = allOwners.filter(owner => {
+            const name = owner.querySelector('.owner-name').textContent.toLowerCase();
+            const email = owner.querySelector('.owner-email').textContent.toLowerCase();
+            const status = owner.dataset.status;
+            const city = owner.dataset.city.toLowerCase();
+            
+            const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+            const matchesStatus = statusValue === 'all' || status === statusValue;
+            const matchesCity = cityValue === 'all' || city === cityValue.toLowerCase();
+            
+            return matchesSearch && matchesStatus && matchesCity;
+        });
+        
+        ownersGrid.innerHTML = '';
+        filtered.forEach(owner => ownersGrid.appendChild(owner));
+    }
+    
+    searchInput.addEventListener('input', filterOwners);
+    statusFilter.addEventListener('change', filterOwners);
+    cityFilter.addEventListener('change', filterOwners);
+});
+</script>
+{% endblock %}

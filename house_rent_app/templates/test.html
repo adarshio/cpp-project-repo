@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Requests | Owner Dashboard</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --light-bg: #f9fafb;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .request-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        
+        .request-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .property-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+        
+        .tenant-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .badge-pending {
+            background-color: #f59e0b;
+            color: white;
+        }
+        
+        .badge-accepted {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .badge-rejected {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .action-btn {
+            border-radius: 0.375rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            color: #9ca3af;
+            margin-bottom: 1rem;
+        }
+        
+        .message-alert {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .message-alert i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+    {% include 'owner_navbar.html' %}
+
+    <div class="container py-5">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 font-weight-bold text-gray-800">
+                    <i class="fas fa-clipboard-list mr-2 text-dark"></i> Rental Requests
+                </h1>
+                <div>
+                    <span class="badge badge-primary p-2">
+                        Total Requests: {{ requests|length }}
+                    </span>
+                </div>
+            </div>
+            <p class="text-light">Manage incoming rental applications for your properties</p>
+        </div>
+
+        <!-- Messages/Alerts -->
+        {% if messages %}
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                {% for message in messages %}
+                <div class="message-alert alert-dismissible fade show
+                    {% if message.tags == 'success' %}bg-success text-white
+                    {% elif message.tags == 'error' %}bg-danger text-white
+                    {% else %}bg-info text-white{% endif %}">
+                    <i class="fas 
+                        {% if message.tags == 'success' %}fa-check-circle
+                        {% elif message.tags == 'error' %}fa-exclamation-circle
+                        {% else %}fa-info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Requests List -->
+        {% if requests %}
+        <div class="row">
+            {% for request in requests %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="request-card h-100">
+                    <img src="media/{{ request.house.image }}" alt="Property Image" class="property-img">
+                    <div class="p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div>
+                                <h5 class="font-weight-bold mb-0">{{ request.tenant.userprofile.user.get_full_name }}</h5>
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt mr-1"></i> {{ request.tenant.userprofile.address }}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <p class="text-muted small mb-2" style="font-weight: 700; font-size: 15px;">
+                                <i class="fas fa-home mr-1"></i> {{ request.house.title }}
+                            </p>
+                            <div class="d-flex justify-content-between">
+                                <span class="font-weight-bold text-primary">
+                                    <i class="fas fa-rupee-sign mr-1"></i> {{ request.house.rent }}/mo
+                                </span>
+                                <span class="text-muted">
+                                    <i class="far fa-calendar-alt mr-1"></i> {{ request.request_date|date:"M d, Y" }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if request.status %}
+                            <span class="badge badge-accepted py-2 px-3">
+                                <i class="fas fa-check-circle mr-1"></i> Accepted
+                            </span>
+                            {% else %}
+                
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="reject" value="{{ request.id }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm action-btn">
+                                    <i class="fas fa-times mr-1"></i> Reject
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            <button class="btn btn-outline-primary btn-sm action-btn" data-toggle="modal" data-target="#requestDetails{{ request.id }}">
+                                <i class="fas fa-eye mr-1"></i> Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Request Details Modal -->
+            <div class="modal fade" id="requestDetails{{ request.id }}" tabindex="-1" role="dialog" aria-labelledby="requestDetailsLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="requestDetailsLabel">
+                                Request Details - {{ request.house.title }}
+                            </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="font-weight-bold">Tenant Information</h6>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="https://imgs.search.brave.com/hxnhTNNTA6uQm6AhPveXCKGT8hNr5XBjuE-1jqoc7R4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA1LzYwLzUwLzI5/LzM2MF9GXzU2MDUw/Mjk1NV9CclJhVUJY/SU9abHplVTV1MlhX/b0d1dnVwRG1CMmF5/Ti5qcGc" 
+                                             alt="Tenant Avatar" class="tenant-avatar mr-3" style="width: 80px; height: 80px;">
+                                        <div>
+                                            <h5 class="font-weight-bold mb-0">{{ request.tenant.userprofile.user.get_full_name }}</h5>
+                                            <p class="text-muted mb-1">
+                                                <i class="fas fa-envelope mr-1"></i> {{ request.tenant.userprofile.user.email }}
+                                            </p>
+                                            <p class="text-muted mb-1">
+                                                <i class="fas fa-phone mr-1"></i> {{ request.tenant.userprofile.phone_number|default:"Not provided" }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <p>
+                                        <i class="fas fa-map-marker-alt mr-2 text-primary"></i>
+                                        {{ request.tenant.userprofile.address }}
+                                        
+                                    </p>
+
+                                    <!-- take input of start date and end date -->  
+                                    <form method="post" class="d-inline" action="{% url 'owner_requests'%}">
+                                        {% csrf_token %}
+
+                                    <div class="form-group">
+                                        {% for bd in booking_dates %}
+                                        {% if bd.house.id == request.house.id and bd.tenant.id == request.tenant.id %}
+                                            <label for="startDate">Start Date</label>
+                                            <input type="date" class="form-control" value="{{ bd.start_date|date:'Y-m-d' }}" id="startDate" name="start_date" required>
+                                            <label for="endDate" class="mt-3">End Date</label>
+                                            <input type="date" class="form-control" value="{{ bd.end_date|date:'Y-m-d' }}" id="endDate" name="end_date" required>
+                                            <hr>
+                                        {% else %}
+                                            <label for="startDate" hidden>Start Date</label>
+                                            <input type="date" class="form-control" id="startDate" name="start_date" required hidden>
+                                            <label for="endDate" class="mt-3" hidden>End Date</label>
+                                            <input type="date" class="form-control" id="endDate" name="end_date" required hidden>
+                                            <hr>
+                                        {% endif %}
+                                    {% empty %}
+                                        <!-- If no booking date for this request -->
+                                        <label for="startDate">Start Date</label>
+                                        <input type="date" class="form-control" id="startDate" name="start_date" required>
+                                        <label for="endDate" class="mt-3">End Date</label>
+                                        <input type="date" class="form-control" id="endDate" name="end_date" required>
+                                        <hr>
+                                    {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="font-weight-bold">Property Details</h6>
+                                    <div class="mb-3">
+                                        <img src="media/{{ request.house.image }}" alt="Property Image" class="img-fluid rounded">
+                                    </div>
+                                    <p>
+                                        <span class="font-weight-bold">Title:</span> {{ request.house.title }}
+                                    </p>
+                                    <p>
+                                        <span class="font-weight-bold">Type:</span> {{ request.house.description }}
+                                    </p>
+                                    <p> 
+                                        <span class="font-weight-bold">Rent:</span> €{{ request.house.rent }}/month
+                                    </p>
+                                    <p>
+                                        <span class="font-weight-bold">Location:</span> {{ request.house.address }}
+                                    </p>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <!-- <h6 class="font-weight-bold">Request Status</h6> -->
+                                    {% if request.status %}
+                                    <span class="badge badge-accepted py-2 px-3">
+                                        <i class="fas fa-check-circle mr-1"></i> Accepted
+                                    </span>
+                                    {% else %}
+                                    <span class="badge badge-pending py-2 px-3">
+                                        <i class="fas fa-clock mr-1"></i> Pending
+                                    </span>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            {% if not request.status %}
+                            
+                                {% csrf_token %}
+                                <input type="hidden" name="accept" value="{{ request.id }}">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check mr-1"></i> Accept Request
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-clipboard-list fa-3x"></i>
+            </div>
+            <h3 class="h4 font-weight-bold text-gray-800 mb-3">No Rental Requests Yet</h3>
+            <p class="text-muted mb-4">You don't have any rental requests at the moment. When tenants apply for your properties, they'll appear here.</p>
+            <a href="{% url 'owner_home' %}" class="btn btn-primary">
+                <i class="fas fa-home mr-2"></i> View Your Properties
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        // Animation for cards when page loads
+        $(document).ready(function() {
+            $('.request-card').each(function(i) {
+                $(this).delay(i * 100).animate({
+                    opacity: 1
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>

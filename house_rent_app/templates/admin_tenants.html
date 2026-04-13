@@ -1,0 +1,168 @@
+{% extends "admin_sidebar.html" %}
+
+{% block title %}Tenants - PropRent Admin{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-light text-gray-800">Tenant <span class="font-semibold">Management</span></h1>
+        <p class="text-gray-500 mt-1">View and manage all registered tenants</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">Total Tenants</p>
+                    <p class="text-2xl font-semibold text-gray-800">{{ tenants|length }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">Active Leases</p>
+                    <p class="text-2xl font-semibold text-gray-800">{{ tenants|length }}</p>
+                </div>
+                <div class="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-file-signature text-emerald-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">Pending Requests</p>
+                    <p class="text-2xl font-semibold text-gray-800">12</p>
+                </div>
+                <div class="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-clock text-amber-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-500">Cities Covered</p>
+                    <p class="text-2xl font-semibold text-gray-800">{{ cities|length }}</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-city text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+        <div class="relative">
+            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="searchInput" placeholder="Search tenants by name, email, or phone..." 
+                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+    </div>
+
+    <!-- Tenants Table -->
+    {% if tenants %}
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="tenantsTable">
+                {% for tenant in tenants %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                                <span class="text-sm font-medium text-gray-600">{{ tenant.user.username|slice:":1"|upper }}</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ tenant.user.username }}</div>
+                                <div class="text-xs text-gray-500">Joined {{ tenant.user.date_joined|date:"M Y" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">{{ tenant.user.email }}</div>
+                        <div class="text-sm text-gray-500">{{ tenant.phone_number }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">{{ tenant.city }}</div>
+                        <div class="text-xs text-gray-500">{{ tenant.address|truncatechars:20 }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if tenant.user.is_active %}
+                        <span class="px-2 py-1 text-xs font-medium bg-emerald-50 text-emerald-700 rounded-full">Active</span>
+                        {% else %}
+                        <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <form method="post" class="inline-block mr-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="edit" value="{{ tenant.user.id }}">
+                            <button type="submit" class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </form>
+                        <form method="post" class="inline-block">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete" value="{{ tenant.user.id }}">
+                            <button type="submit" class="text-red-600 hover:text-red-800"
+                                    onclick="return confirm('Delete this tenant?')">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-users text-gray-400 text-3xl"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No tenants found</h3>
+        <p class="text-gray-500">Tenants will appear here once they register</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const table = document.getElementById('tenantsTable');
+    const rows = table.querySelectorAll('tr');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

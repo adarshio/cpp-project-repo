@@ -1,0 +1,100 @@
+{% extends "tenant_navbar.html" %}
+
+{% block title %}Find Properties - PropRent{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-blue-600">
+    <div class="absolute inset-0">
+        <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1560448204-603b3fc33ddc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="Modern apartment">
+        <div class="absolute inset-0 bg-blue-600 mix-blend-multiply"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
+        <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">Find Your Perfect Home</h1>
+        <p class="mt-6 text-xl text-blue-100 max-w-3xl">Discover thousands of properties that match your lifestyle. From modern apartments to family homes.</p>
+        <div class="mt-10">
+            <div class="bg-white p-4 rounded-lg shadow-lg max-w-2xl">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" placeholder="Search by city, neighborhood, or address" 
+                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <button class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium">
+                        Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Properties Grid -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    {% if houses %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for house in houses %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition">
+            <div class="relative h-56">
+                <img src="{{ house.image.url }}" alt="{{ house.title }}" class="w-full h-full object-cover">
+                {% if house.is_furnished %}
+                <span class="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 text-sm rounded-lg">Furnished</span>
+                {% endif %}
+            </div>
+            
+            <div class="p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ house.title }}</h3>
+                <p class="text-gray-500 flex items-center mb-4">
+                    <i class="fas fa-map-marker-alt text-blue-600 mr-2"></i>
+                    {{ house.address }}, {{ house.city }}
+                </p>
+                
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center text-gray-600">
+                        <i class="fas fa-bed mr-2"></i>
+                        <span class="text-sm">{{ house.no_of_rooms }} rooms</span>
+                    </div>
+                    <div class="flex items-center text-gray-600">
+                        <i class="fas fa-ruler-combined mr-2"></i>
+                        <span class="text-sm">{{ house.area }} sq ft</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div>
+                        <span class="text-2xl font-bold text-gray-800">€{{ house.rent }}</span>
+                        <span class="text-gray-500 text-sm">/month</span>
+                    </div>
+                    <a href="{% url 'tenant_property_details' house.id %}" 
+                       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    <div class="mt-12 flex justify-center">
+        <nav class="flex space-x-2">
+            <span class="px-4 py-2 bg-blue-600 text-white rounded-lg">1</span>
+            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">2</a>
+            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">3</a>
+            <span class="px-4 py-2 text-gray-500">...</span>
+            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">8</a>
+        </nav>
+    </div>
+    {% else %}
+    <div class="text-center py-16">
+        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-home text-gray-400 text-3xl"></i>
+        </div>
+        <h3 class="text-xl font-medium text-gray-900 mb-2">No properties available</h3>
+        <p class="text-gray-500">Check back later for new listings</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
